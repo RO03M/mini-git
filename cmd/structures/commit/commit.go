@@ -1,39 +1,29 @@
-package structures
+package commit
 
 import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
 	"log"
-	"mgit/cmd"
-	"mgit/cmd/storages"
+	"mgit/cmd/storage"
+	"mgit/cmd/structures/head"
+	"mgit/cmd/structures/tree"
 	"strings"
 )
 
 type Commit struct {
 	Hash      string
 	Parent    string
-	Tree      *Tree
+	Tree      *tree.Tree
 	Author    string
 	Committer string
 	Message   string
 }
 
-func (commit Commit) Stringify() string {
-	return fmt.Sprintf(`commit %s
-tree %s
-parent %s
-author %s
-commiter %s
-
-%s
-`, commit.Hash, commit.Tree.Hash, commit.Parent, commit.Author, commit.Committer, commit.Message)
-}
-
-func ParseCommit(data string) (*Commit, error) {
+func Parse(data string) (*Commit, error) {
 	lines := strings.Split(data, "\n")
 	commit := Commit{}
-	fmt.Println(data)
+
 	for _, line := range lines {
 		parts := strings.Split(line, " ")
 
@@ -46,14 +36,18 @@ func ParseCommit(data string) (*Commit, error) {
 
 		switch key {
 		case "commit":
+			if commit.Hash != "" {
+				commit.Message += line
+				break
+			}
 			commit.Hash = value
 		case "tree":
-			commit.Tree = &Tree{Hash: value}
+			commit.Tree = &tree.Tree{Hash: value}
 		case "parent":
 			commit.Parent = value
 		case "author":
 			commit.Author = value
-		case "commiter":
+		case "committer":
 			commit.Committer = value
 		default:
 			commit.Message += line
@@ -63,7 +57,7 @@ func ParseCommit(data string) (*Commit, error) {
 	return &commit, nil
 }
 
-func CreateCommit(message string, parent string, tree *Tree) *Commit {
+func CreateCommit(message string, parent string, tree *tree.Tree) *Commit {
 	hasher := sha1.New()
 	hashMessage := fmt.Sprintf("%s %s %s", message, parent, tree.Hash)
 	hasher.Write([]byte(hashMessage))
@@ -78,7 +72,7 @@ func CreateCommit(message string, parent string, tree *Tree) *Commit {
 }
 
 func GetCommitFromHead() *Commit {
-	head, err := GetHeadHash()
+	head, err := head.GetHeadHash()
 
 	if err != nil {
 		log.Fatal(err)
@@ -88,15 +82,13 @@ func GetCommitFromHead() *Commit {
 		return nil
 	}
 
-	return CommitFromHash(head)
+	return FromHash(head)
 }
 
-func CommitFromHash(hash string) *Commit {
-	object := storages.ReadFromStorage(hash)
+func FromHash(hash string) *Commit {
+	object := storage.GetObjectByHash(hash)
 
-	decompressed := cmd.Decompress(object)
-
-	commit, _ := ParseCommit(string(decompressed))
+	commit, _ := Parse(string(object))
 
 	return commit
 }
@@ -107,7 +99,7 @@ func (commit *Commit) Parents() []Commit {
 	var parents []Commit = []Commit{}
 
 	for current.Parent != "" {
-		parent := CommitFromHash(current.Parent)
+		parent := FromHash(current.Parent)
 
 		if parent == nil {
 			break
@@ -120,7 +112,18 @@ func (commit *Commit) Parents() []Commit {
 	return parents
 }
 
+func (commit Commit) Stringify() string {
+	return fmt.Sprintf(`commit %s
+tree %s
+parent %s
+author %s
+committer %s
+
+%s
+`, commit.Hash, commit.Tree.Hash, commit.Parent, commit.Author, commit.Committer, commit.Message)
+}
+
 func (commit *Commit) Save() {
-	commitObject := cmd.Compress([]byte(commit.Stringify()))
-	storages.SaveToStorage(commit.Hash, commitObject)
+	// commitObject := cmd.Compress([]byte(commit.Stringify()))
+	storage.Create(commit.Hash, []byte(commit.Stringify()))
 }

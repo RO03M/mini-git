@@ -1,20 +1,21 @@
-package structures
+package tree
 
 import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
 	"mgit/cmd"
-	"mgit/cmd/storages"
+	"mgit/cmd/storage"
+	"mgit/cmd/structures/blob"
 	"strings"
 )
 
 type Tree struct {
 	Hash  string
-	Blobs []Blob
+	Blobs []blob.Blob
 }
 
-func CreateTree(blobs []Blob) *Tree {
+func CreateTree(blobs []blob.Blob) *Tree {
 	var blobHashes []string = make([]string, len(blobs))
 	for i, blob := range blobs {
 		blobHashes[i] = blob.Hash
@@ -42,19 +43,19 @@ func (tree *Tree) Stringify() string {
 
 func (tree *Tree) Save() {
 	compressed := cmd.Compress([]byte(tree.Stringify()))
-	storages.SaveToStorage(tree.Hash, compressed)
+	storage.Create(tree.Hash, compressed)
 }
 
 func (tree *Tree) LoadBlobs() {
-	foo := storages.ReadFromStorage(tree.Hash)
+	foo := storage.GetObjectByHash(tree.Hash)
 	decompressed := cmd.Decompress(foo)
 
 	lines := strings.Split(string(decompressed), "\n")
 
-	var blobs []Blob
+	var blobs []blob.Blob
 
 	for _, line := range lines {
-		blob := ParseBlob(line)
+		blob := blob.ParseBlob(line)
 		if blob == nil {
 			continue
 		}

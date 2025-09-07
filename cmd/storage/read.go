@@ -1,4 +1,4 @@
-package storages
+package storage
 
 import (
 	"fmt"
@@ -7,16 +7,12 @@ import (
 	"os"
 )
 
-func SaveToStorage(hash string, content []byte) {
+func objectsPath(hash string) string {
 	hashDirName, hashFileName := hash[:2], hash[2:]
-
-	objectDir := fmt.Sprintf("%s/objects/%s", paths.RepoName, hashDirName)
-	os.MkdirAll(objectDir, 0755)
-
-	os.WriteFile(fmt.Sprintf("%s/%s", objectDir, hashFileName), content, 0755)
+	return fmt.Sprintf("%s/objects/%s/%s", paths.RepoName, hashDirName, hashFileName)
 }
 
-func ReadFromStorage(hash string) []byte {
+func GetObjectByHash(hash string) []byte {
 	hashDirName, hashFileName := hash[:2], hash[2:]
 	objectPath := fmt.Sprintf("%s/objects/%s/%s", paths.RepoName, hashDirName, hashFileName)
 
@@ -30,5 +26,15 @@ func ReadFromStorage(hash string) []byte {
 		log.Fatal(err, "r2")
 	}
 
-	return file
+	decompressedFile := Decompress(file)
+
+	return decompressedFile
+}
+
+func Exists(hash string) bool {
+	path := objectsPath(hash)
+
+	_, err := os.Stat(path)
+
+	return !os.IsNotExist(err)
 }

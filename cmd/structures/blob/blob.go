@@ -1,10 +1,10 @@
-package structures
+package blob
 
 import (
 	"crypto/sha1"
 	"encoding/hex"
 	"mgit/cmd"
-	"mgit/cmd/storages"
+	"mgit/cmd/storage"
 	"strings"
 )
 
@@ -26,7 +26,7 @@ func CreateBlob(b []byte) *Blob {
 	}
 }
 
-func StageObjectsToBlobs(objects []storages.StageObject) []Blob {
+func StageObjectsToBlobs(objects []storage.StageObject) []Blob {
 	var blobs []Blob = make([]Blob, len(objects))
 
 	for i, object := range objects {
@@ -55,7 +55,7 @@ func ParseBlob(data string) *Blob {
 }
 
 func (blob Blob) ReadContent() []byte {
-	data := storages.ReadFromStorage(blob.Hash)
+	data := storage.GetObjectByHash(blob.Hash)
 
 	decompressed := cmd.Decompress(data)
 

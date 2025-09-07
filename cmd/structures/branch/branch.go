@@ -1,4 +1,4 @@
-package structures
+package branch
 
 import (
 	"log"

@@ -1,4 +1,4 @@
-package storages
+package stage
 
 import (
 	"bufio"
@@ -49,7 +49,7 @@ func OpenStageFile() *os.File {
 	return file
 }
 
-func AddStage(path string, hash string) {
+func AddFile(path string, hash string) {
 	stageFile := OpenStageFile()
 
 	newRow := fmt.Sprintf("%s %s\n", path, hash)
@@ -68,7 +68,7 @@ func AddStage(path string, hash string) {
 	stageFile.Close()
 }
 
-func ClearStage() {
+func Reset() {
 	path := fmt.Sprintf("%s/index", paths.RepoName)
 	err := os.Truncate(path, 0)
 
@@ -77,7 +77,7 @@ func ClearStage() {
 	}
 }
 
-func GetStages() []StageObject {
+func GetFiles() []StageObject {
 	stageFile := OpenStageFile()
 	stageScanner := bufio.NewScanner(stageFile)
 
