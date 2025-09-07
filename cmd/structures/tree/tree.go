@@ -31,6 +31,32 @@ func CreateTree(blobs []blob.Blob) *Tree {
 	}
 }
 
+func CreateMergedTree(prevTree *Tree, blobs []blob.Blob) *Tree {
+	if prevTree == nil {
+		return CreateTree(blobs)
+	}
+
+	if len(prevTree.Blobs) == 0 {
+		prevTree.LoadBlobs()
+	}
+
+	var totalSize int = len(prevTree.Blobs) + len(blobs)
+	var mergedBlobs []blob.Blob = make([]blob.Blob, totalSize)
+	var i int = 0
+
+	for _, blob := range prevTree.Blobs {
+		mergedBlobs[i] = blob
+		i++
+	}
+
+	for _, blob := range blobs {
+		mergedBlobs[i] = blob
+		i++
+	}
+
+	return CreateTree(mergedBlobs)
+}
+
 func (tree *Tree) Stringify() string {
 	var lines []string = make([]string, len(tree.Blobs))
 

@@ -12,29 +12,32 @@ import (
 func Commit(message string) {
 	stages := storage.GetStages()
 
-	var parentHash string
-	lastCommit := commit.GetCommitFromHead()
-
-	if lastCommit != nil {
-		parentHash = lastCommit.Hash
-	}
-
 	if len(stages) == 0 {
 		fmt.Println("Nothing to commit")
 		return
 	}
 
+	var parentHash string
+	var newTree *tree.Tree
+
+	lastCommit := commit.GetCommitFromHead()
+
 	blobs := blob.StageObjectsToBlobs(stages)
 
-	tree := tree.CreateTree(blobs)
-	tree.Save()
+	if lastCommit == nil {
+		newTree = tree.CreateTree(blobs)
+	} else {
+		newTree = tree.CreateMergedTree(lastCommit.Tree, blobs)
+		parentHash = lastCommit.Hash
+	}
 
-	commit := commit.CreateCommit(message, parentHash, tree)
-	commit.Save()
+	newTree.Save()
+
+	newCommit := commit.CreateCommit(message, parentHash, newTree)
+	newCommit.Save()
 
 	storage.ClearStage()
-	head.UpdateHead(commit.Hash)
+	head.UpdateHead(newCommit.Hash)
 
 	fmt.Printf("Committed %v files\n\n", len(stages))
-	fmt.Println(commit.Stringify())
 }
