@@ -28,6 +28,8 @@ func main() {
 		commands.Log()
 	case "checkout":
 		commands.Checkout(args[1])
+	case "trackable":
+		commands.Trackable()
 	default:
 		fmt.Println("Invalid command")
 	}
