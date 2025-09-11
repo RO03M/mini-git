@@ -13,5 +13,5 @@ func Trackable() {
 
 	fmt.Println(strings.Join(entries, "\n"))
 
-	fmt.Printf("End of trackable files.\nTotal: %v\nTook: %s\n", len(entries), time.Since(start))
+	fmt.Printf("\nEnd of trackable files.\nTotal: %v\nTook: %s\n", len(entries), time.Since(start))
 }

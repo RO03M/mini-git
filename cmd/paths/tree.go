@@ -13,7 +13,7 @@ func GetDirTree(dir string) []string {
 
 	for _, entry := range entries {
 		entryPath := filepath.Join(dir, entry.Name())
-		if ignore.Match(entryPath) {
+		if ignore.Match(entry.Name()) {
 			continue
 		}
 		if entry.IsDir() {

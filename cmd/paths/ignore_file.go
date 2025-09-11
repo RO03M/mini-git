@@ -9,6 +9,8 @@ import (
 
 var ignore *ignoreFile
 
+var DEFAULT_IGNORE = []string{".mgit", ".git"}
+
 type ignoreFile struct {
 	raw      []byte
 	lines    []string
@@ -25,6 +27,8 @@ func LoadIgnoreFile() *ignoreFile {
 		raw:   file,
 		lines: strings.Split(string(file), "\n"),
 	}
+
+	ignore.lines = append(ignore.lines, DEFAULT_IGNORE...)
 
 	for _, line := range ignore.lines {
 		rule, err := regexp.Compile("^" + line + "$")

@@ -60,3 +60,30 @@ func TestIgnoreFile(t *testing.T) {
 		t.Fatal("ignore file is in the list")
 	}
 }
+
+func TestIgnoreDir(t *testing.T) {
+	testutils.ChDirToTemp(t)
+
+	os.WriteFile(".gitignore", []byte(".mgit\nfile\ndirectory"), 0644)
+	os.WriteFile("file", []byte{}, 0644)
+	os.MkdirAll("directory", 0700)
+	os.MkdirAll("sub", 0700)
+	os.WriteFile("directory/subfile", []byte{}, 0644)
+	os.WriteFile("sub/file", []byte{}, 0644) // shouldn't track because file is listed in the ignore file
+
+	os.WriteFile("ok", []byte{}, 0644)
+	os.MkdirAll("directoryok", 0700)
+	os.WriteFile("directoryok/ok", []byte{}, 0644)
+
+	filePaths := paths.GetDirTree(".")
+
+	t.Log(filePaths)
+
+	if len(filePaths) != 3 {
+		t.Fatalf("wrong result length\nexpected: 3\ngot: %v", len(filePaths))
+	}
+
+	if filePaths[1] != "directoryok/ok" || filePaths[2] != "ok" {
+		t.Fatal("wrong nodes tracked")
+	}
+}
