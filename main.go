@@ -32,6 +32,8 @@ func main() {
 		commands.Trackable()
 	case "tracked":
 		commands.Tracked()
+	case "untracked":
+		commands.Untracked()
 	default:
 		fmt.Println("Invalid command")
 	}
