@@ -1,6 +1,7 @@
 package commands_test
 
 import (
+	"fmt"
 	"mgit/cmd/commands"
 	"mgit/cmd/structures/commit"
 	"mgit/internal/testutils"
@@ -67,4 +68,31 @@ func TestTreeShouldInherit(t *testing.T) {
 	if file1 == nil || file2 == nil {
 		t.Fatal("one of the files was not reverted")
 	}
+}
+
+func TestWithDeletedFiles(t *testing.T) {
+	testutils.ChDirToTemp(t)
+
+	commands.Init()
+
+	os.WriteFile("file1", []byte{}, 0644)
+	os.WriteFile("file2", []byte{}, 0644)
+
+	commands.Add("file1", "file2")
+
+	hash1 := commands.Commit("first commit")
+
+	os.Remove("file2")
+
+	commands.Add("file2")
+
+	hash2 := commands.Commit("removed file2")
+
+	if hash2 == "" {
+		t.Fatal("no changes were detected when commiting, but a file was deleted")
+	}
+
+	commands.Checkout(hash1)
+
+	fmt.Println(hash2)
 }

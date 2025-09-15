@@ -6,12 +6,31 @@ import (
 	"mgit/cmd/stage"
 	"mgit/cmd/storage"
 	"mgit/cmd/structures/blob"
+	"mgit/cmd/structures/commit"
+	"mgit/cmd/utils"
 	"os"
 )
 
-func Add(path string) {
+// Should call this only if the file doesn't exist
+func addRemovedFile(path string) {
+	tracked := commit.HeadTrackedFilesTree()
+
+	trackedMap := utils.StringSliceMap(tracked)
+
+	if _, found := trackedMap[path]; !found {
+		fmt.Println(path + " doesn't exist")
+		return
+	}
+
+	manager := stage.BlankManager()
+	manager.StageDeleted(path)
+	manager.Write()
+	fmt.Println("Added removed file ", path)
+}
+
+func addSingle(path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		fmt.Printf("%s doesn't exist\n", path)
+		addRemovedFile(path)
 		return
 	}
 
@@ -24,5 +43,14 @@ func Add(path string) {
 	blob := blob.CreateBlob(file)
 	storage.Create(blob.Hash, blob.Content)
 
-	stage.AddFile(path, blob.Hash)
+	stageManager := stage.BlankManager()
+	stageManager.Stage(path, blob.Hash)
+
+	stageManager.Write()
+}
+
+func Add(paths ...string) {
+	for _, path := range paths {
+		addSingle(path)
+	}
 }

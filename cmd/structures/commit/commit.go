@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"mgit/cmd/storage"
+	"mgit/cmd/structures/blob"
 	"mgit/cmd/structures/head"
 	"mgit/cmd/structures/tree"
 	"strings"
@@ -91,6 +92,16 @@ func FromHash(hash string) *Commit {
 	commit, _ := Parse(string(object))
 
 	return commit
+}
+
+func (c Commit) Blobs() []blob.Blob {
+	if c.Tree == nil {
+		return []blob.Blob{}
+	}
+
+	c.Tree.LoadBlobs()
+
+	return c.Tree.Blobs
 }
 
 func (commit *Commit) Parents() []Commit {

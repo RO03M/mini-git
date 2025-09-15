@@ -1,6 +1,7 @@
 package commands_test
 
 import (
+	"fmt"
 	"mgit/cmd/commands"
 	"mgit/cmd/stage"
 	"mgit/cmd/storage"
@@ -17,8 +18,9 @@ func TestModifyAndStage(t *testing.T) {
 
 	commands.Add("./file_to_be_staged")
 
-	stageFiles := stage.GetFiles()
-
+	manager := stage.Load()
+	stageFiles := manager.AllObjects()
+	fmt.Println(stageFiles, manager)
 	if len(stageFiles) != 1 {
 		t.Fatalf("Wrong size of staged files\nexpected: 1\ngot: %v", len(stageFiles))
 	}
@@ -35,5 +37,26 @@ func TestModifyAndStage(t *testing.T) {
 
 	if !createdObject {
 		t.Fatal("Object was not created for the staged file")
+	}
+}
+
+func TestAddRemovedFile(t *testing.T) {
+	testutils.ChDirToTemp(t)
+	commands.Init()
+
+	os.WriteFile("file_to_be_staged", []byte("content"), 0644)
+
+	commands.Add("file_to_be_staged")
+
+	commands.Commit("first")
+
+	os.Remove("file_to_be_staged")
+
+	commands.Add("file_to_be_staged")
+
+	manager := stage.Load()
+
+	if len(manager.AllObjects()) != 1 {
+		t.Fatal("wrong staged files size")
 	}
 }

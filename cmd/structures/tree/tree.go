@@ -4,9 +4,9 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"mgit/cmd"
 	"mgit/cmd/storage"
 	"mgit/cmd/structures/blob"
+	"mgit/cmd/utils"
 	"strings"
 )
 
@@ -68,15 +68,13 @@ func (tree *Tree) Stringify() string {
 }
 
 func (tree *Tree) Save() {
-	compressed := cmd.Compress([]byte(tree.Stringify()))
-	storage.Create(tree.Hash, compressed)
+	storage.Create(tree.Hash, []byte(tree.Stringify()))
 }
 
 func (tree *Tree) LoadBlobs() {
-	foo := storage.GetObjectByHash(tree.Hash)
-	decompressed := cmd.Decompress(foo)
+	treeObject := storage.GetObjectByHash(tree.Hash)
 
-	lines := strings.Split(string(decompressed), "\n")
+	lines := strings.Split(string(treeObject), "\n")
 
 	var blobs []blob.Blob
 
@@ -90,4 +88,20 @@ func (tree *Tree) LoadBlobs() {
 	}
 
 	tree.Blobs = blobs
+}
+
+func (tree *Tree) RemoveBlobsByPath(paths ...string) {
+	currentBlobs := tree.Blobs
+	var newBlobs []blob.Blob = []blob.Blob{}
+	pathMap := utils.StringSliceMap(paths)
+
+	for _, blob := range currentBlobs {
+		if _, found := pathMap[blob.FilePath]; found {
+			continue
+		}
+
+		newBlobs = append(newBlobs, blob)
+	}
+
+	tree.Blobs = newBlobs
 }

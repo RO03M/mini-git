@@ -19,7 +19,7 @@ func main() {
 	case "init":
 		commands.Init()
 	case "add":
-		commands.Add(args[1])
+		commands.Add(args[1:]...)
 	case "commit":
 		commands.Commit(args[1])
 	case "cat-file":
@@ -34,6 +34,8 @@ func main() {
 		commands.Tracked()
 	case "untracked":
 		commands.Untracked()
+	case "rf":
+		commands.RemovedFiles()
 	default:
 		fmt.Println("Invalid command")
 	}
