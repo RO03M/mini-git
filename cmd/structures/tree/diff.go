@@ -12,8 +12,9 @@ const (
 )
 
 type TreeDiff struct {
-	Blob blob.Blob
-	Type Operation
+	CurrentBlob blob.Blob
+	TargetBlob  blob.Blob
+	Type        Operation
 }
 
 func blobs2Map(blobs []blob.Blob) map[string]string {
@@ -26,48 +27,61 @@ func blobs2Map(blobs []blob.Blob) map[string]string {
 	return blobMap
 }
 
-func (tree *Tree) Diff(tree2 Tree) []TreeDiff {
-	if len(tree.Blobs) == 0 {
-		tree.LoadBlobs()
+func (current *Tree) Diff(target Tree) []TreeDiff {
+	if len(current.Blobs) == 0 {
+		current.LoadBlobs()
 	}
 
-	if len(tree2.Blobs) == 0 {
-		tree2.LoadBlobs()
+	if len(target.Blobs) == 0 {
+		target.LoadBlobs()
 	}
 
 	var diffs []TreeDiff = []TreeDiff{}
-	blobMapTree1 := blobs2Map(tree.Blobs)
-	blobMapTree2 := blobs2Map(tree2.Blobs)
+	currentBlobMap := blobs2Map(current.Blobs)
+	targetBlobMap := blobs2Map(target.Blobs)
 
-	for _, blob := range tree.Blobs {
-		if match, found := blobMapTree2[blob.FilePath]; found {
-			if match == blob.Hash {
+	for _, blobObj := range current.Blobs {
+		if blobMatchHash, found := targetBlobMap[blobObj.FilePath]; found {
+			if blobMatchHash == blobObj.Hash {
 				diffs = append(diffs, TreeDiff{
-					Blob: blob,
+					CurrentBlob: blobObj,
+					TargetBlob: blob.Blob{
+						Hash:     blobMatchHash,
+						FilePath: blobObj.FilePath,
+					},
 					Type: DiffEqual,
 				})
 			} else {
 				diffs = append(diffs, TreeDiff{
-					Blob: blob,
+					CurrentBlob: blobObj,
+					TargetBlob: blob.Blob{
+						Hash:     blobMatchHash,
+						FilePath: blobObj.FilePath,
+					},
 					Type: DiffModified,
 				})
 			}
 		} else {
 			diffs = append(diffs, TreeDiff{
-				Blob: blob,
+				CurrentBlob: blobObj,
+				TargetBlob: blob.Blob{
+					Hash:     "",
+					FilePath: blobObj.FilePath,
+				},
 				Type: DiffDelete,
 			})
 		}
 	}
 
-	for _, blob := range tree2.Blobs {
-		if _, found := blobMapTree1[blob.FilePath]; found {
+	for _, blobObj := range target.Blobs {
+		if _, found := currentBlobMap[blobObj.FilePath]; found {
 			continue
 		}
 
 		diffs = append(diffs, TreeDiff{
-			Blob: blob,
-			Type: DiffInsert,
+			CurrentBlob: blob.Blob{},
+			TargetBlob:  blobObj,
+			Type:        DiffInsert,
 		})
 	}
 
