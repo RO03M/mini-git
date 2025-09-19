@@ -61,6 +61,7 @@ func (manager *StageManager) Write() {
 
 	for _, object := range manager.AllObjects() {
 		file.WriteString(object.Stringify())
+		file.WriteString("\n")
 	}
 
 	file.Close()

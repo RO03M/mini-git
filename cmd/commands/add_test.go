@@ -1,7 +1,6 @@
 package commands_test
 
 import (
-	"fmt"
 	"mgit/cmd/commands"
 	"mgit/cmd/stage"
 	"mgit/cmd/storage"
@@ -20,7 +19,7 @@ func TestModifyAndStage(t *testing.T) {
 
 	manager := stage.Load()
 	stageFiles := manager.AllObjects()
-	fmt.Println(stageFiles, manager)
+
 	if len(stageFiles) != 1 {
 		t.Fatalf("Wrong size of staged files\nexpected: 1\ngot: %v", len(stageFiles))
 	}

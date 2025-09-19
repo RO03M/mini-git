@@ -7,6 +7,7 @@ import (
 	"mgit/cmd/structures/commit"
 	"mgit/cmd/structures/head"
 	"mgit/cmd/structures/tree"
+	"mgit/cmd/utils"
 )
 
 func Commit(message string) string {
@@ -33,7 +34,10 @@ func Commit(message string) string {
 		parentHash = lastCommit.Hash
 	}
 
-	// remove deleted blobs from tree ref
+	blobsToRemove := utils.Map(stageManager.DeletedObjects(), func(item stage.Object, key int) string {
+		return item.Path
+	})
+	newTree.RemoveBlobsByPath(blobsToRemove...)
 	newTree.Save()
 
 	newCommit := commit.CreateCommit(message, parentHash, newTree)

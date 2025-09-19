@@ -1,7 +1,6 @@
 package commands_test
 
 import (
-	"fmt"
 	"mgit/cmd/commands"
 	"mgit/cmd/structures/commit"
 	"mgit/internal/testutils"
@@ -94,5 +93,13 @@ func TestWithDeletedFiles(t *testing.T) {
 
 	commands.Checkout(hash1)
 
-	fmt.Println(hash2)
+	if _, err := os.Stat("file2"); os.IsNotExist(err) {
+		t.Fatal("Checkout should have restored file2")
+	}
+
+	commands.Checkout(hash2)
+	if _, err := os.Stat("file2"); err == nil {
+		t.Fatal("Checkout 2 should have deleted the \"file2\"")
+	}
+
 }

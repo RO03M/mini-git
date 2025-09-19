@@ -4,9 +4,11 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"maps"
 	"mgit/cmd/storage"
 	"mgit/cmd/structures/blob"
 	"mgit/cmd/utils"
+	"slices"
 	"strings"
 )
 
@@ -16,17 +18,8 @@ type Tree struct {
 }
 
 func CreateTree(blobs []blob.Blob) *Tree {
-	var blobHashes []string = make([]string, len(blobs))
-	for i, blob := range blobs {
-		blobHashes[i] = blob.Hash
-	}
-
-	hasher := sha1.New()
-	hasher.Write([]byte(strings.Join(blobHashes, "")))
-	hash := hasher.Sum(nil)
-
 	return &Tree{
-		Hash:  hex.EncodeToString(hash),
+		// Hash:  hex.EncodeToString(hash),
 		Blobs: blobs,
 	}
 }
@@ -40,21 +33,35 @@ func CreateMergedTree(prevTree *Tree, blobs []blob.Blob) *Tree {
 		prevTree.LoadBlobs()
 	}
 
-	var totalSize int = len(prevTree.Blobs) + len(blobs)
-	var mergedBlobs []blob.Blob = make([]blob.Blob, totalSize)
-	var i int = 0
+	var blobMap map[string]blob.Blob = map[string]blob.Blob{}
 
-	for _, blob := range prevTree.Blobs {
-		mergedBlobs[i] = blob
-		i++
+	for _, blobObj := range prevTree.Blobs {
+		blobMap[blobObj.Hash] = blobObj
 	}
 
-	for _, blob := range blobs {
-		mergedBlobs[i] = blob
-		i++
+	for _, blobObj := range blobs {
+		blobMap[blobObj.Hash] = blobObj
 	}
 
-	return CreateTree(mergedBlobs)
+	uniqueBlobs := slices.Collect(maps.Values(blobMap))
+
+	return CreateTree(uniqueBlobs)
+
+	// var totalSize int = len(prevTree.Blobs) + len(blobs)
+	// var mergedBlobs []blob.Blob = make([]blob.Blob, totalSize)
+	// var i int = 0
+
+	// for _, blob := range prevTree.Blobs {
+	// 	mergedBlobs[i] = blob
+	// 	i++
+	// }
+
+	// for _, blob := range blobs {
+	// 	mergedBlobs[i] = blob
+	// 	i++
+	// }
+
+	// return CreateTree(mergedBlobs)
 }
 
 func (tree *Tree) Stringify() string {
@@ -67,7 +74,21 @@ func (tree *Tree) Stringify() string {
 	return strings.Join(lines, "\n")
 }
 
+func (tree *Tree) GenerateHash() {
+	var blobHashes []string = make([]string, len(tree.Blobs))
+	for i, blob := range tree.Blobs {
+		blobHashes[i] = blob.Hash
+	}
+
+	hasher := sha1.New()
+	hasher.Write([]byte(strings.Join(blobHashes, "")))
+	hash := hasher.Sum(nil)
+
+	tree.Hash = hex.EncodeToString(hash)
+}
+
 func (tree *Tree) Save() {
+	tree.GenerateHash()
 	storage.Create(tree.Hash, []byte(tree.Stringify()))
 }
 

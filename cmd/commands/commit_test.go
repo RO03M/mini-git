@@ -1,7 +1,6 @@
 package commands_test
 
 import (
-	"fmt"
 	"mgit/cmd/commands"
 	"mgit/cmd/structures/commit"
 	"mgit/internal/testutils"
@@ -44,7 +43,6 @@ func TestCommitWithDeletedFile(t *testing.T) {
 
 	commit.GetCommitFromHead()
 
-	// fmt.Println("content", lastCommit.Blobs()[0].Content)
 	os.Remove("file")
 
 	commands.Add("file")
@@ -53,12 +51,7 @@ func TestCommitWithDeletedFile(t *testing.T) {
 	c1 := commit.FromHash(h1)
 	c2 := commit.FromHash(h2)
 
-	fmt.Println(c1.Blobs())
-	fmt.Println(c2.Blobs())
-	// firstCommit := commit.FromHash(firstCommitHash)
-	// firstCommit.Tree.LoadBlobs()
-
-	// if lastCommit.
-	// fmt.Println(firstCommit.Tree.Blobs)
-	// fmt.Println(lastCommit.Tree.Blobs)
+	if len(c1.Blobs()) != 1 || len(c2.Blobs()) != 0 {
+		t.Fatalf("Wrong commit blobs sizes\nc1: %v\n c2: %v\n", c1.Blobs(), c2.Blobs())
+	}
 }
