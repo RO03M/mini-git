@@ -9,6 +9,7 @@ import (
 	"mgit/cmd/structures/blob"
 	"mgit/cmd/structures/head"
 	"mgit/cmd/structures/tree"
+	"os"
 	"strings"
 )
 
@@ -75,7 +76,7 @@ func CreateCommit(message string, parent string, tree *tree.Tree) *Commit {
 func GetCommitFromHead() *Commit {
 	head, err := head.GetHeadHash()
 
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		log.Fatal(err)
 	}
 

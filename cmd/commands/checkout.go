@@ -1,14 +1,19 @@
 package commands
 
 import (
+	"fmt"
 	"mgit/cmd/structures/commit"
 	"mgit/cmd/structures/head"
 	"mgit/cmd/structures/tree"
 	"os"
 )
 
-func Checkout(ref string) {
+func Checkout(ref string) error {
 	currentCommit := commit.GetCommitFromHead()
+
+	if currentCommit == nil {
+		return fmt.Errorf("%v invalid commit or not found", ref)
+	}
 
 	target := commit.FromHash(ref)
 
@@ -27,4 +32,6 @@ func Checkout(ref string) {
 	}
 
 	head.UpdateHead(target.Hash)
+
+	return nil
 }

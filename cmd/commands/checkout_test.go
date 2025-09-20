@@ -103,3 +103,13 @@ func TestWithDeletedFiles(t *testing.T) {
 	}
 
 }
+
+func TestCheckoutNonExistentCommit(t *testing.T) {
+	testutils.ChDirToTemp(t)
+	commands.Init()
+
+	err := commands.Checkout("dumbasscommit")
+	if err == nil {
+		t.Fatal("expected error when checking out non-existent commit, got nil")
+	}
+}
