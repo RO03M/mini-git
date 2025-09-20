@@ -10,8 +10,8 @@ func main() {
 	args := os.Args[1:]
 
 	if len(args) == 0 {
-		fmt.Println("Custom git command made by Romera :)")
-		fmt.Println("Run help to see the available commands")
+		fmt.Println("MGit is a custom git command made by Romera :)")
+		commands.PrintHelp()
 		return
 	}
 
@@ -36,6 +36,8 @@ func main() {
 		commands.Untracked()
 	case "rf":
 		commands.RemovedFiles()
+	case "help":
+		commands.PrintHelp()
 	default:
 		fmt.Println("Invalid command")
 	}
