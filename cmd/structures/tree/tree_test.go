@@ -62,10 +62,10 @@ func TestTreeDiff(t *testing.T) {
 	}
 
 	for _, diff := range diffs {
-		correctCase := correctCaseMap[diff.Blob.FilePath]
+		correctCase := correctCaseMap[diff.TargetBlob.FilePath]
 
 		if diff.Type != correctCase.Type {
-			t.Fatalf("Wrong diff type for blob %s\nexpected: %v\ngot: %v", diff.Blob.FilePath, correctCase.Type, diff.Type)
+			t.Fatalf("Wrong diff type for blob %s\nexpected: %v\ngot: %v", diff.TargetBlob.FilePath, correctCase.Type, diff.Type)
 		}
 	}
 }
