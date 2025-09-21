@@ -10,8 +10,8 @@ func main() {
 	args := os.Args[1:]
 
 	if len(args) == 0 {
-		fmt.Println("Custom git command made by Romera :)")
-		fmt.Println("Run help to see the available commands")
+		fmt.Println("MGit is a custom git command made by Romera :)")
+		commands.PrintHelp()
 		return
 	}
 
@@ -19,7 +19,7 @@ func main() {
 	case "init":
 		commands.Init()
 	case "add":
-		commands.Add(args[1])
+		commands.Add(args[1:]...)
 	case "commit":
 		commands.Commit(args[1])
 	case "cat-file":
@@ -32,6 +32,12 @@ func main() {
 		commands.Trackable()
 	case "tracked":
 		commands.Tracked()
+	case "untracked":
+		commands.Untracked()
+	case "rf":
+		commands.RemovedFiles()
+	case "help":
+		commands.PrintHelp()
 	default:
 		fmt.Println("Invalid command")
 	}

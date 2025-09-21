@@ -3,7 +3,7 @@ package blob
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"mgit/cmd"
+	"mgit/cmd/stage"
 	"mgit/cmd/storage"
 	"strings"
 )
@@ -14,8 +14,7 @@ type Blob struct {
 	Content  []byte
 }
 
-func CreateBlob(b []byte) *Blob {
-	content := cmd.Compress(b)
+func CreateBlob(content []byte) *Blob {
 	hasher := sha1.New()
 	hasher.Write(content)
 	hash := hasher.Sum(nil)
@@ -26,7 +25,7 @@ func CreateBlob(b []byte) *Blob {
 	}
 }
 
-func StageObjectsToBlobs(objects []storage.StageObject) []Blob {
+func StageObjectsToBlobs(objects []stage.Object) []Blob {
 	var blobs []Blob = make([]Blob, len(objects))
 
 	for i, object := range objects {
@@ -57,7 +56,5 @@ func ParseBlob(data string) *Blob {
 func (blob Blob) ReadContent() []byte {
 	data := storage.GetObjectByHash(blob.Hash)
 
-	decompressed := cmd.Decompress(data)
-
-	return decompressed
+	return data
 }

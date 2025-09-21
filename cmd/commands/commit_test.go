@@ -31,3 +31,27 @@ func TestSimpleCommit(t *testing.T) {
 		t.Fatalf("wrong commit message\nexpected: commit message\ngot: %s", lastCommit.Message)
 	}
 }
+
+func TestCommitWithDeletedFile(t *testing.T) {
+	testutils.ChDirToTemp(t)
+
+	os.WriteFile("file", []byte("arquivo que precisa ser removido"), 0644)
+
+	commands.Init()
+	commands.Add("file")
+	h1 := commands.Commit("first")
+
+	commit.GetCommitFromHead()
+
+	os.Remove("file")
+
+	commands.Add("file")
+	h2 := commands.Commit("removed file")
+
+	c1 := commit.FromHash(h1)
+	c2 := commit.FromHash(h2)
+
+	if len(c1.Blobs()) != 1 || len(c2.Blobs()) != 0 {
+		t.Fatalf("Wrong commit blobs sizes\nc1: %v\n c2: %v\n", c1.Blobs(), c2.Blobs())
+	}
+}

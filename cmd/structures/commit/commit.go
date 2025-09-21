@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"mgit/cmd/storage"
+	"mgit/cmd/structures/blob"
 	"mgit/cmd/structures/head"
 	"mgit/cmd/structures/tree"
+	"os"
 	"strings"
 )
 
@@ -74,7 +76,7 @@ func CreateCommit(message string, parent string, tree *tree.Tree) *Commit {
 func GetCommitFromHead() *Commit {
 	head, err := head.GetHeadHash()
 
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		log.Fatal(err)
 	}
 
@@ -91,6 +93,16 @@ func FromHash(hash string) *Commit {
 	commit, _ := Parse(string(object))
 
 	return commit
+}
+
+func (c Commit) Blobs() []blob.Blob {
+	if c.Tree == nil {
+		return []blob.Blob{}
+	}
+
+	c.Tree.LoadBlobs()
+
+	return c.Tree.Blobs
 }
 
 func (commit *Commit) Parents() []Commit {

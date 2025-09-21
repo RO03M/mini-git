@@ -68,3 +68,48 @@ func TestTreeShouldInherit(t *testing.T) {
 		t.Fatal("one of the files was not reverted")
 	}
 }
+
+func TestWithDeletedFiles(t *testing.T) {
+	testutils.ChDirToTemp(t)
+
+	commands.Init()
+
+	os.WriteFile("file1", []byte{}, 0644)
+	os.WriteFile("file2", []byte{}, 0644)
+
+	commands.Add("file1", "file2")
+
+	hash1 := commands.Commit("first commit")
+
+	os.Remove("file2")
+
+	commands.Add("file2")
+
+	hash2 := commands.Commit("removed file2")
+
+	if hash2 == "" {
+		t.Fatal("no changes were detected when commiting, but a file was deleted")
+	}
+
+	commands.Checkout(hash1)
+
+	if _, err := os.Stat("file2"); os.IsNotExist(err) {
+		t.Fatal("Checkout should have restored file2")
+	}
+
+	commands.Checkout(hash2)
+	if _, err := os.Stat("file2"); err == nil {
+		t.Fatal("Checkout 2 should have deleted the \"file2\"")
+	}
+
+}
+
+func TestCheckoutNonExistentCommit(t *testing.T) {
+	testutils.ChDirToTemp(t)
+	commands.Init()
+
+	err := commands.Checkout("dumbasscommit")
+	if err == nil {
+		t.Fatal("expected error when checking out non-existent commit, got nil")
+	}
+}
