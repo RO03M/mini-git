@@ -5,7 +5,6 @@ import (
 	"mgit/cmd/stage"
 	"mgit/cmd/structures/blob"
 	"mgit/cmd/structures/commit"
-	"mgit/cmd/structures/head"
 	"mgit/cmd/structures/tree"
 	"mgit/cmd/utils"
 )
@@ -44,7 +43,7 @@ func Commit(message string) string {
 	newCommit.Save()
 
 	stage.Truncate()
-	head.UpdateHead(newCommit.Hash)
+	// head.UpdateHead(newCommit.Hash)
 
 	fmt.Printf("Committed %v files\n\n", len(stages))
 

@@ -38,6 +38,8 @@ func main() {
 		commands.RemovedFiles()
 	case "help":
 		commands.PrintHelp()
+	case "branch":
+		commands.CreateBranch(args[1])
 	default:
 		fmt.Println("Invalid command")
 	}

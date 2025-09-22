@@ -1,15 +1,21 @@
 package head
 
 import (
-	"errors"
 	"log"
 	"mgit/cmd/paths"
+	"mgit/cmd/storage"
+	"mgit/cmd/structures/branch"
 	"os"
-	"strings"
 )
 
 func isBranchRef(text string) bool {
-	return strings.HasPrefix(text, "ref:")
+	for _, char := range text {
+		if char == '/' {
+			return true
+		}
+	}
+
+	return false
 }
 
 func GetHeadHash() (string, error) {
@@ -19,53 +25,70 @@ func GetHeadHash() (string, error) {
 		return "", err
 	}
 
-	if isBranchRef(string(head)) {
-		parts := strings.Split(string(head), "ref: ")
+	hash := storage.GetHashFromRef(string(head))
 
-		if len(parts) >= 2 {
-			path := parts[1]
-
-			branch, err := os.ReadFile(paths.RepoName + "/" + path)
-			return string(branch), err
-		}
-
-		return "", errors.New("invalid HEAD ref")
-	}
-
-	return string(head), err
+	return hash, nil
 }
 
-func UpdateHead(hash string) {
-	head, err := os.ReadFile(paths.HEAD)
+// Search for branch first, not found?
+//
+// Then we check if there is a commit with that ref, if not we panic
+func UpdateHead(ref string) {
+	branchObj := branch.FindBranch(ref)
 
-	if err != nil {
+	if branchObj != nil {
+		err := os.WriteFile(paths.HEAD, []byte(branchObj.Ref()), 0644)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		return
 	}
 
-	if isBranchRef(string(head)) {
-		// essa lógica toda eu acho que deveria ficar no storage
-		// então se for uma hash busca dentro de /objects
-		// se for um caminho tenta achar ele com base no próprio caminho no ref
-		parts := strings.Split(string(head), "ref: ")
+	object := storage.GetObjectByHash(ref)
 
-		if len(parts) >= 2 {
-			path := parts[1]
+	if object != nil {
+		err := os.WriteFile(paths.HEAD, []byte(ref), 0644)
 
-			err := os.WriteFile(paths.RepoName+"/"+path, []byte(hash), 0644)
-
-			if err != nil {
-				log.Fatalf("failed to update head ref: %v", err)
-			}
-
-			return
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		log.Fatal("couldn't update ref, invalid head ref")
+		return
 	}
 
-	err = os.WriteFile(paths.HEAD, []byte(hash), 0644)
+	log.Fatalf("invalid ref %v", ref)
+	// head, err := os.ReadFile(paths.HEAD)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	// if err != nil {
+	// 	return
+	// }
+
+	// if isBranchRef(string(head)) {
+	// 	// essa lógica toda eu acho que deveria ficar no storage
+	// 	// então se for uma hash busca dentro de /objects
+	// 	// se for um caminho tenta achar ele com base no próprio caminho no ref
+	// 	parts := strings.Split(string(head), "ref: ")
+
+	// 	if len(parts) >= 2 {
+	// 		path := parts[1]
+
+	// 		err := os.WriteFile(paths.RepoName+"/"+path, []byte(ref), 0644)
+
+	// 		if err != nil {
+	// 			log.Fatalf("failed to update head ref: %v", err)
+	// 		}
+
+	// 		return
+	// 	}
+
+	// 	log.Fatal("couldn't update ref, invalid head ref")
+	// }
+
+	// err = os.WriteFile(paths.HEAD, []byte(ref), 0644)
+
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 }

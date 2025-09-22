@@ -1,7 +1,8 @@
 package commands
 
 import (
-	"fmt"
+	"errors"
+	"mgit/cmd/storage"
 	"mgit/cmd/structures/commit"
 	"mgit/cmd/structures/head"
 	"mgit/cmd/structures/tree"
@@ -12,10 +13,12 @@ func Checkout(ref string) error {
 	currentCommit := commit.GetCommitFromHead()
 
 	if currentCommit == nil {
-		return fmt.Errorf("%v invalid commit or not found", ref)
+		return errors.New("invalid HEAD ref, nil found")
 	}
 
-	target := commit.FromHash(ref)
+	refHash := storage.GetHashFromRef(ref)
+
+	target := commit.FromHash(refHash)
 
 	target.Tree.LoadBlobs()
 
