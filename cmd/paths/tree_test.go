@@ -9,6 +9,7 @@ import (
 )
 
 func TestDirTree(t *testing.T) {
+	fmt.Println(1)
 	testutils.ChDirToTemp(t)
 
 	os.WriteFile("file", []byte{}, 0644)
@@ -17,22 +18,23 @@ func TestDirTree(t *testing.T) {
 
 	filePaths := paths.GetDirTree(".")
 
-	fmt.Println(filePaths)
-
 	if len(filePaths) != 2 {
 		t.Fatalf("wrong file paths size\nexpected: 2\ngot: %v", len(filePaths))
 	}
 }
 
 func TestIgnoreFile(t *testing.T) {
+	fmt.Println(2)
 	testutils.ChDirToTemp(t)
 
 	os.WriteFile(".gitignore", []byte(".mgit\nignore"), 0644)
 	os.WriteFile("include", []byte{}, 0644)
 	os.WriteFile("ignore", []byte{}, 0644)
 
+	fmt.Println(os.Getwd())
 	filePaths := paths.GetDirTree(".")
-	fmt.Println(filePaths)
+	fmt.Println(os.Getwd())
+
 	if len(filePaths) != 2 {
 		t.Fatalf("wrong file paths size\nexpected: 2\ngot: %v", len(filePaths))
 	}
@@ -62,6 +64,7 @@ func TestIgnoreFile(t *testing.T) {
 }
 
 func TestIgnoreDir(t *testing.T) {
+	fmt.Println(3)
 	testutils.ChDirToTemp(t)
 
 	os.WriteFile(".gitignore", []byte(".mgit\nfile\ndirectory"), 0644)

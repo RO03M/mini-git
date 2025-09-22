@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var ignore *ignoreFile
+// var ignore *ignoreFile
 
 var DEFAULT_IGNORE = []string{".mgit", ".git"}
 
@@ -18,12 +18,13 @@ type ignoreFile struct {
 }
 
 func LoadIgnoreFile() *ignoreFile {
-	if ignore != nil {
-		return ignore
-	}
+	// if ignore != nil {
+	// 	return ignore
+	// }
 
 	file, _ := os.ReadFile(".gitignore")
-	ignore = &ignoreFile{
+
+	ignore := &ignoreFile{
 		raw:   file,
 		lines: strings.Split(string(file), "\n"),
 	}

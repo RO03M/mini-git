@@ -1,12 +1,10 @@
 package commit_test
 
 import (
-	"fmt"
 	"log"
 	"mgit/cmd/structures/blob"
 	"mgit/cmd/structures/commit"
 	"mgit/cmd/structures/tree"
-	"reflect"
 	"strings"
 	"testing"
 )
@@ -45,7 +43,7 @@ func TestParse(t *testing.T) {
 		},
 		Author:    "Romera",
 		Committer: "Romera",
-		Message:   "commit message",
+		Message:   "\ncommit message\n",
 	}
 
 	var sb strings.Builder
@@ -59,9 +57,31 @@ func TestParse(t *testing.T) {
 
 	parsedCommit, _ := commit.Parse(sb.String())
 
-	if !reflect.DeepEqual(c, *parsedCommit) {
-		fmt.Println(c.Tree, parsedCommit.Tree)
-		log.Fatalf("\ncommit mismatch: \ngot %+v\nwant %+v", *parsedCommit, c)
+	if c.Hash != parsedCommit.Hash {
+		log.Fatalf("\ncommit hash mismatch: \ngot %+v\nwant %+v", parsedCommit.Hash, c.Hash)
 	}
-	fmt.Println(c, *parsedCommit)
+
+	if c.Author != parsedCommit.Author {
+		log.Fatalf("\ncommit author mismatch: \ngot %+v\nwant %+v", parsedCommit.Author, c.Author)
+	}
+
+	if c.Committer != parsedCommit.Committer {
+		log.Fatalf("\ncommit committer mismatch: \ngot %+v\nwant %+v", parsedCommit.Committer, c.Committer)
+	}
+
+	if c.Message != parsedCommit.Message {
+		log.Fatalf("\ncommit message mismatch: \ngot %+v\nwant %+v", parsedCommit.Message, c.Message)
+	}
+
+	if c.Parent != parsedCommit.Parent {
+		log.Fatalf("\ncommit parent mismatch: \ngot %+v\nwant %+v", parsedCommit.Parent, c.Parent)
+	}
+
+	if parsedCommit.Tree == nil {
+		log.Fatal("tree is <nil>")
+	}
+
+	if c.Tree.Hash != parsedCommit.Tree.Hash {
+		log.Fatalf("\ncommit tree mismatch: \ngot %+v\nwant %+v", parsedCommit.Tree.Hash, c.Tree.Hash)
+	}
 }

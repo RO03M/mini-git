@@ -88,6 +88,7 @@ func GetCommitFromHead() *Commit {
 }
 
 func FromHash(hash string) *Commit {
+	fmt.Println("fromhash", hash)
 	object := storage.GetObjectByHash(hash)
 
 	commit, _ := Parse(string(object))
