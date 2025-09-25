@@ -55,3 +55,25 @@ func TestTreeIsInheriting(t *testing.T) {
 	}
 	fmt.Println(tree1.Entries, tree2.Entries)
 }
+
+func TestCommitWithDeletedFile(t *testing.T) {
+	testutils.ChDirToTemp(t)
+	repo := repository.Initialize(".")
+
+	os.WriteFile("file", []byte("arquivo que precisa ser removido"), 0644)
+
+	repo.Add("file")
+	c1 := repo.Commit("first")
+
+	os.Remove("file")
+
+	repo.Add("file")
+	c2 := repo.Commit("removed file")
+
+	tree1 := objects.ParseTree(c1.Tree, repo.CatFile(c1.Tree))
+	tree2 := objects.ParseTree(c2.Tree, repo.CatFile(c2.Tree))
+
+	if len(tree1.Entries) != 1 || len(tree2.Entries) != 0 {
+		t.Fatal("wrong tree entries size")
+	}
+}

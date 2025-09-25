@@ -47,10 +47,10 @@ func (index *Index) Add(path string, hash string) {
 	index.Items[path] = item
 }
 
-func (index *Index) AddRm(path string, hash string) {
+func (index *Index) AddRm(path string) {
 	item := Item{
 		Path:   path,
-		Hash:   hash,
+		Hash:   "",
 		Action: ActionDelete,
 	}
 
@@ -81,4 +81,32 @@ func (index *Index) WriteBuffer() error {
 func (index *Index) Clear() error {
 	index.Items = map[string]Item{}
 	return os.Truncate(index.Path, 0)
+}
+
+func (index *Index) Additions() []Item {
+	additions := []Item{}
+
+	for _, item := range index.Items {
+		if item.Action != ActionAdd {
+			continue
+		}
+
+		additions = append(additions, item)
+	}
+
+	return additions
+}
+
+func (index *Index) Deletions() []Item {
+	deletions := []Item{}
+
+	for _, item := range index.Items {
+		if item.Action != ActionDelete {
+			continue
+		}
+
+		deletions = append(deletions, item)
+	}
+
+	return deletions
 }

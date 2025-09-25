@@ -64,6 +64,17 @@ func (tree *Tree) Stringify() string {
 	return strings.Join(lines, "\n")
 }
 
+// key is the tree entry path
+func (tree *Tree) entryMap() map[string]TreeEntry {
+	var entryMap map[string]TreeEntry = map[string]TreeEntry{}
+
+	for _, entry := range tree.Entries {
+		entryMap[entry.Path] = entry
+	}
+
+	return entryMap
+}
+
 func (tree *Tree) Merge(merge *Tree) {
 	if merge == nil {
 		return
@@ -81,6 +92,16 @@ func (tree *Tree) Merge(merge *Tree) {
 
 	for _, entry := range tree.Entries {
 		entryMap[entry.Path] = entry
+	}
+
+	tree.Entries = slices.Collect(maps.Values(entryMap))
+}
+
+func (tree *Tree) RemoveEntries(paths []string) {
+	entryMap := tree.entryMap()
+
+	for _, path := range paths {
+		delete(entryMap, path)
 	}
 
 	tree.Entries = slices.Collect(maps.Values(entryMap))

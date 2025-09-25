@@ -2,15 +2,29 @@ package repository
 
 import (
 	"log"
+	"mgit/internal/plumbing"
 	"os"
 )
+
+func (repo *Repository) AddRm(paths ...string) {
+	head := repo.RevParse("HEAD")
+	tracked := repo.TrackedFiles(head)
+	trackedMap := plumbing.StringSliceMap(tracked)
+
+	for _, path := range paths {
+		if _, found := trackedMap[path]; !found {
+			log.Fatal(path + " doesn't exist")
+		}
+
+		repo.index.AddRm(path)
+	}
+}
 
 func (repo *Repository) Add(paths ...string) {
 	for _, path := range paths {
 		if _, err := os.Stat(path); os.IsNotExist(err) {
-			// addRemovedFile(path)
-			// return
-			log.Fatal("path doesn't exist: ", path)
+			repo.AddRm(path)
+			continue
 		}
 
 		file, err := os.ReadFile(path)
