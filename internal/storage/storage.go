@@ -7,13 +7,11 @@ import (
 	"path/filepath"
 )
 
-type Hash string
-
 type Storage struct {
 	ObjectsPath string
 }
 
-func (s Storage) Create(content []byte) (Hash, error) {
+func (s Storage) Create(content []byte) (string, error) {
 	compressed := plumbing.Compress(content)
 	hash := plumbing.HashSha1(content)
 
@@ -30,5 +28,27 @@ func (s Storage) Create(content []byte) (Hash, error) {
 		log.Fatalf("failed to create object: %v", err)
 	}
 
-	return Hash(hash), nil
+	return hash, nil
+}
+
+func (s Storage) Get(hash string) ([]byte, error) {
+	snapshot, err := os.ReadFile(filepath.Join(s.ObjectsPath, hash[:2], hash[2:]))
+
+	if err != nil {
+		return []byte{}, nil
+	}
+
+	decompressed := plumbing.Decompress(snapshot)
+
+	return decompressed, nil
+}
+
+func (s Storage) Exists(hash string) bool {
+	if len(hash) < 4 {
+		return false
+	}
+
+	stat, _ := os.Stat(filepath.Join(s.ObjectsPath, hash[:2], hash[2:]))
+
+	return stat != nil
 }

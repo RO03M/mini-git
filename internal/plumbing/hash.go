@@ -12,3 +12,7 @@ func HashSha1(content []byte) string {
 
 	return hex.EncodeToString(b)
 }
+
+func IsSha1(text string) bool {
+	return len(text) == sha1.Size
+}

@@ -3,14 +3,19 @@ package repository
 import (
 	"fmt"
 	"log"
+	"maps"
+	"mgit/internal/index"
 	"mgit/internal/storage"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 type Repository struct {
-	DotPath string
-	storage *storage.Storage
+	DotPath  string
+	headPath string
+	storage  *storage.Storage
+	index    *index.Index
 }
 
 const DefaultDirPerm = 0755
@@ -40,8 +45,12 @@ func findDotPath() (string, bool) {
 
 func newRepository(dotpath string) *Repository {
 	repo := Repository{
-		DotPath: dotpath,
-		storage: &storage.Storage{},
+		DotPath:  dotpath,
+		headPath: filepath.Join(dotpath, "HEAD"),
+		storage: &storage.Storage{
+			ObjectsPath: filepath.Join(dotpath, "objects"),
+		},
+		index: index.Open(filepath.Join(dotpath, "index")),
 	}
 
 	return &repo
@@ -93,4 +102,24 @@ func (repo *Repository) PathFromDot(path string) string {
 	relpath, _ := filepath.Rel(filepath.Dir(repo.DotPath), abspath)
 
 	return relpath
+}
+
+type StatusBody struct {
+	Staged []index.Item
+}
+
+func (repo *Repository) Status() StatusBody {
+	return StatusBody{
+		Staged: slices.Collect(maps.Values(repo.index.Items)),
+	}
+}
+
+func (repo *Repository) CatFile(hash string) string {
+	object, err := repo.storage.Get(hash)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return string(object)
 }
