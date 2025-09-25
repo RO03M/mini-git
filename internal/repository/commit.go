@@ -63,7 +63,7 @@ func (repo *Repository) buildTree(fromCommit *objects.Commit) *objects.Tree {
 	}
 
 	if fromCommit != nil {
-		lastTree := objects.ParseTree(fromCommit.Tree, repo.CatFile(fromCommit.Tree))
+		lastTree := repo.GetTree(fromCommit.Tree)
 
 		if lastTree != nil {
 			tree.Merge(lastTree)
@@ -80,6 +80,34 @@ func (repo *Repository) buildTree(fromCommit *objects.Commit) *objects.Tree {
 	tree.RemoveEntries(deletionPaths)
 
 	return &tree
+}
+
+func (repo *Repository) GetCommit(hash string) *objects.Commit {
+	object, err := repo.storage.Get(hash)
+
+	if err != nil {
+		return nil
+	}
+
+	commit := objects.ParseCommit(hash, string(object))
+
+	if commit.IsEmpty() {
+		return nil
+	}
+
+	return commit
+}
+
+func (repo *Repository) GetTree(hash string) *objects.Tree {
+	object, err := repo.storage.Get(hash)
+
+	if err != nil {
+		return nil
+	}
+
+	tree := objects.ParseTree(hash, string(object))
+
+	return tree
 }
 
 func (repo *Repository) Commit(message string) *objects.Commit {

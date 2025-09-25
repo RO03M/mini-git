@@ -56,12 +56,14 @@ func TestWithDeletedFiles(t *testing.T) {
 	}
 
 	repo.Checkout(c1.Hash)
+	repo.UpdateHeadPointer(c1.Hash)
 
 	if _, err := os.Stat("file2"); os.IsNotExist(err) {
 		t.Fatal("Checkout should have restored file2")
 	}
 
 	repo.Checkout(c2.Hash)
+	repo.UpdateHeadPointer(c1.Hash)
 	if _, err := os.Stat("file2"); err == nil {
 		t.Fatal("Checkout 2 should have deleted the \"file2\"")
 	}

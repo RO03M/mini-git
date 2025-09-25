@@ -14,5 +14,5 @@ func HashSha1(content []byte) string {
 }
 
 func IsSha1(text string) bool {
-	return len(text) == sha1.Size
+	return len(text) == 40
 }

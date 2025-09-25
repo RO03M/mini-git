@@ -114,12 +114,12 @@ func (repo *Repository) Status() StatusBody {
 	}
 }
 
-func (repo *Repository) CatFile(hash string) string {
+func (repo *Repository) CatFile(hash string) (string, error) {
 	object, err := repo.storage.Get(hash)
 
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	return string(object)
+	return string(object), nil
 }

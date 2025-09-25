@@ -39,7 +39,7 @@ func (repo *Repository) Add(paths ...string) {
 			log.Fatal(err)
 		}
 
-		repo.index.Add(path, hash)
+		repo.index.Add(repo.PathFromDot(path), hash)
 	}
 
 	err := repo.index.WriteBuffer()

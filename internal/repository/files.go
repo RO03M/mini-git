@@ -1,15 +1,13 @@
 package repository
 
-import "mgit/internal/objects"
-
 func (repo *Repository) TrackedFiles(hash string) []string {
-	commit := objects.ParseCommit(hash, repo.CatFile(hash))
+	commit := repo.GetCommit(hash)
 
 	if commit.Tree == "" {
 		return []string{}
 	}
 
-	tree := objects.ParseTree(commit.Tree, repo.CatFile(commit.Tree))
+	tree := repo.GetTree(commit.Tree)
 
 	var paths []string = make([]string, len(tree.Entries))
 

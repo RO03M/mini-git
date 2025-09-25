@@ -18,7 +18,7 @@ func (repo *Repository) UpdateHeadPointer(hash string) {
 	head := repo.GetHead()
 
 	if branch := plumbing.BranchFromRef(head); branch != "" {
-		repo.UpdateBranch(branch, hash)
+		repo.BranchUpdate(branch, hash)
 		return
 	}
 
@@ -42,40 +42,6 @@ func (repo *Repository) UpdateHeadDirect(hash string) {
 	file.Close()
 }
 
-func (repo *Repository) UpdateBranch(branch string, hash string) {
-	file, err := os.OpenFile(filepath.Join(repo.DotPath, "refs/heads", branch), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-
-	if err != nil {
-		if os.IsNotExist(err) {
-			log.Fatalf("branch %s doesn't exist", branch)
-		}
-
-		log.Fatal(err)
-	}
-
-	_, err = file.WriteString(hash)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	file.Close()
-}
-
-func (repo *Repository) GetBranch(branch string) string {
-	file, err := os.ReadFile(filepath.Join(repo.DotPath, "refs/heads", branch))
-
-	if err != nil {
-		if os.IsNotExist(err) {
-			log.Fatalf("branch %s doesn't exist", branch)
-		}
-
-		log.Fatal(err)
-	}
-
-	return string(file)
-}
-
 func (repo *Repository) RevParse(ref string) string {
 	if ref == "HEAD" {
 		head := repo.GetHead()
@@ -88,7 +54,11 @@ func (repo *Repository) RevParse(ref string) string {
 	}
 
 	if branch := plumbing.BranchFromRef(ref); branch != "" {
-		return repo.GetBranch(branch)
+		return repo.BranchGet(branch)
+	}
+
+	if repo.BranchExists(ref) {
+		return repo.BranchGet(ref)
 	}
 
 	return ref
