@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"log"
 	"mgit/internal/plumbing"
 	"os"
@@ -32,6 +33,10 @@ func (s Storage) Create(content []byte) (string, error) {
 }
 
 func (s Storage) Get(hash string) ([]byte, error) {
+	if !plumbing.IsSha1(hash) {
+		return []byte{}, fmt.Errorf("\"%s\" is not a valid sha1 hash", hash)
+	}
+
 	snapshot, err := os.ReadFile(filepath.Join(s.ObjectsPath, hash[:2], hash[2:]))
 
 	if err != nil {
