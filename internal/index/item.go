@@ -25,7 +25,7 @@ func Parse(text string) Item {
 		return Item{}
 	}
 
-	path, hash, action := parts[0], parts[1], parts[2]
+	action, hash, path := parts[0], parts[1], parts[2]
 
 	return Item{
 		Path:   path,
@@ -35,5 +35,5 @@ func Parse(text string) Item {
 }
 
 func (item *Item) Stringify() string {
-	return fmt.Sprintf("%s %s %s", item.Path, item.Hash, item.Action)
+	return fmt.Sprintf("%s %s %s", item.Action, item.Hash, item.Path)
 }

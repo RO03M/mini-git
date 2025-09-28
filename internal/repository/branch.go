@@ -33,6 +33,10 @@ func (repo *Repository) BranchCreate(branch string) (string, error) {
 
 	headHash := repo.RevParse("HEAD")
 
+	if headHash == "" {
+		log.Fatal("cannot create a branch without a commit history first")
+	}
+
 	err := os.WriteFile(filepath.Join(repo.DotPath, "refs/heads", branch), []byte(headHash), 0644)
 
 	if err != nil {
@@ -60,4 +64,19 @@ func (repo *Repository) BranchGet(branch string) string {
 	}
 
 	return string(file)
+}
+
+func (repo *Repository) Branches() []string {
+	entries, err := os.ReadDir(filepath.Join(repo.DotPath, "refs/heads"))
+	branches := []string{}
+
+	if err != nil {
+		log.Fatalf("failed to get branches: %v", err)
+	}
+
+	for _, entry := range entries {
+		branches = append(branches, entry.Name())
+	}
+
+	return branches
 }

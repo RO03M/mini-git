@@ -76,3 +76,39 @@ func TestCommitWithDeletedFile(t *testing.T) {
 		t.Fatal("wrong tree entries size")
 	}
 }
+
+func TestCommitHistory(t *testing.T) {
+	testutils.ChDirToTemp(t)
+
+	repo := repository.Initialize(".")
+
+	os.WriteFile("file", []byte("v1"), 0644)
+	repo.Add("file")
+	repo.Commit("first")
+
+	os.WriteFile("file", []byte("v2"), 0644)
+	repo.Add("file")
+	repo.Commit("second")
+
+	os.WriteFile("file", []byte("v3"), 0644)
+	repo.Add("file")
+	c3 := repo.Commit("third")
+
+	history := repo.CommitHistory(c3.Hash)
+
+	if len(history) != 3 {
+		t.Fatalf("wrong history size\nexpected: 3\ngot: %d", len(history))
+	}
+
+	if history[0].Message != "\nthird\n\n" {
+		t.Fatalf("wrong commit at the top: %v", history[0])
+	}
+
+	if history[1].Message != "\nsecond\n\n" {
+		t.Fatalf("wrong commit at the top: %v", history[1])
+	}
+
+	if history[2].Message != "\nfirst\n\n" {
+		t.Fatalf("wrong commit at the top: %v", history[2])
+	}
+}

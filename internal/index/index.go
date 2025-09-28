@@ -28,7 +28,7 @@ func Open(path string) *Index {
 			continue
 		}
 
-		items[item.Hash] = item
+		items[item.Path] = item
 	}
 
 	return &Index{
@@ -55,6 +55,10 @@ func (index *Index) AddRm(path string) {
 	}
 
 	index.Items[path] = item
+}
+
+func (index *Index) Remove(path string) {
+	delete(index.Items, path)
 }
 
 func (index *Index) WriteBuffer() error {

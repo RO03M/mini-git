@@ -8,7 +8,7 @@ import (
 
 func (repo *Repository) AddRm(paths ...string) {
 	head := repo.RevParse("HEAD")
-	tracked := repo.TrackedFiles(head)
+	tracked := repo.Tracked(head)
 	trackedMap := plumbing.StringSliceMap(tracked)
 
 	for _, path := range paths {
@@ -46,5 +46,17 @@ func (repo *Repository) Add(paths ...string) {
 
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func (repo *Repository) Remove(paths ...string) {
+	for _, path := range paths {
+		repo.index.Remove(path)
+	}
+
+	err := repo.index.WriteBuffer()
+
+	if err != nil {
+		log.Fatalf("failed to save index: %v", err)
 	}
 }

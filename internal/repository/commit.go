@@ -115,20 +115,11 @@ func (repo *Repository) Commit(message string) *objects.Commit {
 		log.Fatal("no staged files")
 	}
 
-	// tree := objects.Tree{
-	// 	Entries: repo.treeEntriesFromIndex(),
-	// }
-
 	var parent string
 	lastCommit := repo.LastCommit()
 
 	if lastCommit != nil {
 		parent = lastCommit.Hash
-		// lastTree := objects.ParseTree(lastCommit.Tree, repo.CatFile(lastCommit.Tree))
-
-		// if lastTree != nil {
-		// 	tree.Merge(lastTree)
-		// }
 	}
 
 	tree := repo.buildTree(lastCommit)
@@ -154,4 +145,24 @@ func (repo *Repository) Commit(message string) *objects.Commit {
 	repo.index.Clear()
 
 	return &commit
+}
+
+func (repo Repository) CommitHistory(hash string) []*objects.Commit {
+	commits := []*objects.Commit{}
+
+	currentHash := hash
+	currentCommit := repo.GetCommit(hash)
+
+	for currentCommit != nil {
+		currentCommit.Hash = currentHash
+		commits = append(commits, currentCommit)
+		if len(currentCommit.Parents) == 0 {
+			break
+		}
+
+		currentHash = currentCommit.Parents[0]
+		currentCommit = repo.GetCommit(currentHash)
+	}
+
+	return commits
 }

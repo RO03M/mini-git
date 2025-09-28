@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"maps"
+	"mgit/internal/ignore"
 	"mgit/internal/index"
 	"mgit/internal/storage"
 	"os"
@@ -16,6 +17,7 @@ type Repository struct {
 	headPath string
 	storage  *storage.Storage
 	index    *index.Index
+	ignore   ignore.Ignore
 }
 
 const DefaultDirPerm = 0755
@@ -50,7 +52,8 @@ func newRepository(dotpath string) *Repository {
 		storage: &storage.Storage{
 			ObjectsPath: filepath.Join(dotpath, "objects"),
 		},
-		index: index.Open(filepath.Join(dotpath, "index")),
+		index:  index.Open(filepath.Join(dotpath, "index")),
+		ignore: *ignore.Open(filepath.Join(dotpath, ".gitignore")),
 	}
 
 	return &repo
@@ -105,12 +108,14 @@ func (repo *Repository) PathFromDot(path string) string {
 }
 
 type StatusBody struct {
-	Staged []index.Item
+	Staged    []index.Item
+	Untracked []string
 }
 
 func (repo *Repository) Status() StatusBody {
 	return StatusBody{
-		Staged: slices.Collect(maps.Values(repo.index.Items)),
+		Staged:    slices.Collect(maps.Values(repo.index.Items)),
+		Untracked: repo.Untracked(),
 	}
 }
 
