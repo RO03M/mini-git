@@ -12,14 +12,18 @@ func TestCreateBranch(t *testing.T) {
 
 	repo := repository.Initialize(".")
 
+	os.WriteFile("file", []byte{}, 0644)
+	repo.Add("file")
+	c1 := repo.Commit("initial commit")
+
 	branch1Hash, err := repo.BranchCreate("branch1")
 
 	if err != nil {
 		t.Fatalf("couldn't create branch1: %v", err)
 	}
 
-	if branch1Hash != "" {
-		t.Fatalf("wrong hash value.\nwant: \"\"\ngot: %v", branch1Hash)
+	if branch1Hash != c1.Hash {
+		t.Fatalf("wrong hash value.\nwant: %s\ngot: %v", c1.Hash, branch1Hash)
 	}
 
 	if !repo.BranchExists("branch1") {

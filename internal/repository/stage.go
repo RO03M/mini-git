@@ -2,14 +2,16 @@ package repository
 
 import (
 	"log"
+	"maps"
 	"mgit/internal/plumbing"
 	"os"
+	"slices"
 )
 
 func (repo *Repository) AddRm(paths ...string) {
 	head := repo.RevParse("HEAD")
 	tracked := repo.Tracked(head)
-	trackedMap := plumbing.StringSliceMap(tracked)
+	trackedMap := plumbing.StringSliceMap(slices.Collect(maps.Values(tracked)))
 
 	for _, path := range paths {
 		if _, found := trackedMap[path]; !found {
@@ -21,6 +23,8 @@ func (repo *Repository) AddRm(paths ...string) {
 }
 
 func (repo *Repository) Add(paths ...string) {
+	tracked := repo.Tracked(repo.RevParse("HEAD"))
+
 	for _, path := range paths {
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			repo.AddRm(path)
@@ -37,6 +41,10 @@ func (repo *Repository) Add(paths ...string) {
 
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		if trackedHash, found := tracked[path]; found && trackedHash == hash {
+			continue
 		}
 
 		repo.index.Add(repo.PathFromDot(path), hash)

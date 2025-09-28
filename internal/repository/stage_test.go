@@ -1,6 +1,7 @@
 package repository_test
 
 import (
+	"fmt"
 	"mgit/internal/repository"
 	"mgit/internal/testutils"
 	"os"
@@ -42,5 +43,19 @@ func TestStageFilesOutOfRoot(t *testing.T) {
 }
 
 func TestShouldNotStageUnmodified(t *testing.T) {
+	testutils.ChDirToTemp(t)
 
+	repo := repository.Initialize(".")
+
+	os.WriteFile("file", []byte("content"), 0644)
+	repo.Add("file")
+	repo.Commit("first")
+
+	repo.Add("file")
+
+	staged := repo.Status().Staged
+	fmt.Println(staged)
+	if len(staged) != 0 {
+		t.Fatal("an unmodified file was added to stage")
+	}
 }

@@ -5,19 +5,20 @@ import (
 	"path/filepath"
 )
 
-func (repo *Repository) Tracked(hash string) []string {
+// returns a map of tracked file given a commit hash. key is the path, value is the corresponding hash
+func (repo *Repository) Tracked(hash string) map[string]string {
 	commit := repo.GetCommit(hash)
 
 	if commit == nil || commit.Tree == "" {
-		return []string{}
+		return map[string]string{}
 	}
 
 	tree := repo.GetTree(commit.Tree)
 
-	var paths []string = make([]string, len(tree.Entries))
+	paths := map[string]string{}
 
-	for i, entry := range tree.Entries {
-		paths[i] = entry.Path
+	for _, entry := range tree.Entries {
+		paths[entry.Path] = entry.Hash
 	}
 
 	return paths
@@ -49,7 +50,7 @@ func (repo *Repository) Untracked() []string {
 
 	var trackedMap map[string]bool = make(map[string]bool)
 
-	for _, path := range trackedPaths {
+	for path, _ := range trackedPaths {
 		trackedMap[path] = true
 	}
 
