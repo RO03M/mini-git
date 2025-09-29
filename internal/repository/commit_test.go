@@ -1,0 +1,114 @@
+package repository_test
+
+import (
+	"fmt"
+	"log"
+	"mgit/internal/repository"
+	"mgit/internal/testutils"
+	"os"
+	"testing"
+)
+
+func TestSimpleCommit(t *testing.T) {
+	testutils.ChDirToTemp(t)
+	repo := repository.Initialize(".")
+
+	os.WriteFile("file", []byte("content"), 0644)
+	os.WriteFile("file2", []byte("content2"), 0644)
+
+	repo.Add("file", "file2")
+
+	commit := repo.Commit("commit message")
+
+	if commit == nil {
+		t.Fatal("commit was not created (or not returned properly, since it is <nil>)")
+	}
+
+	if commit.Hash != repo.RevParse("HEAD") {
+		t.Fatal("the head wasn't updated with the new commit hash")
+	}
+
+	if len(repo.Status().Staged) != 0 {
+		t.Fatal("the staged files were not cleared")
+	}
+}
+
+func TestTreeIsInheriting(t *testing.T) {
+	testutils.ChDirToTemp(t)
+
+	repo := repository.Initialize(".")
+
+	os.WriteFile("file", []byte("content"), 0644)
+	repo.Add("file")
+	c1 := repo.Commit("first commit")
+
+	os.WriteFile("file2", []byte("content2"), 0644)
+	repo.Add("file2")
+	c2 := repo.Commit("second commit")
+
+	tree1 := repo.GetTree(c1.Tree)
+	tree2 := repo.GetTree(c2.Tree)
+
+	if len(tree2.Entries) != 2 {
+		log.Fatalf("tree2 should have 2 entries but got: %v", len(tree2.Entries))
+	}
+	fmt.Println(tree1.Entries, tree2.Entries)
+}
+
+func TestCommitWithDeletedFile(t *testing.T) {
+	testutils.ChDirToTemp(t)
+	repo := repository.Initialize(".")
+
+	os.WriteFile("file", []byte("arquivo que precisa ser removido"), 0644)
+
+	repo.Add("file")
+	c1 := repo.Commit("first")
+
+	os.Remove("file")
+
+	repo.Add("file")
+	c2 := repo.Commit("removed file")
+
+	tree1 := repo.GetTree(c1.Tree)
+	tree2 := repo.GetTree(c2.Tree)
+
+	if len(tree1.Entries) != 1 || len(tree2.Entries) != 0 {
+		t.Fatal("wrong tree entries size")
+	}
+}
+
+func TestCommitHistory(t *testing.T) {
+	testutils.ChDirToTemp(t)
+
+	repo := repository.Initialize(".")
+
+	os.WriteFile("file", []byte("v1"), 0644)
+	repo.Add("file")
+	repo.Commit("first")
+
+	os.WriteFile("file", []byte("v2"), 0644)
+	repo.Add("file")
+	repo.Commit("second")
+
+	os.WriteFile("file", []byte("v3"), 0644)
+	repo.Add("file")
+	c3 := repo.Commit("third")
+
+	history := repo.CommitHistory(c3.Hash)
+
+	if len(history) != 3 {
+		t.Fatalf("wrong history size\nexpected: 3\ngot: %d", len(history))
+	}
+
+	if history[0].Message != "\nthird\n\n" {
+		t.Fatalf("wrong commit at the top: %v", history[0])
+	}
+
+	if history[1].Message != "\nsecond\n\n" {
+		t.Fatalf("wrong commit at the top: %v", history[1])
+	}
+
+	if history[2].Message != "\nfirst\n\n" {
+		t.Fatalf("wrong commit at the top: %v", history[2])
+	}
+}

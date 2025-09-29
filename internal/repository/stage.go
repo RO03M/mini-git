@@ -1,0 +1,70 @@
+package repository
+
+import (
+	"log"
+	"maps"
+	"mgit/internal/plumbing"
+	"os"
+	"slices"
+)
+
+func (repo *Repository) AddRm(paths ...string) {
+	head := repo.RevParse("HEAD")
+	tracked := repo.Tracked(head)
+	trackedMap := plumbing.StringSliceMap(slices.Collect(maps.Values(tracked)))
+
+	for _, path := range paths {
+		if _, found := trackedMap[path]; !found {
+			log.Fatal(path + " doesn't exist")
+		}
+
+		repo.index.AddRm(path)
+	}
+}
+
+func (repo *Repository) Add(paths ...string) {
+	tracked := repo.Tracked(repo.RevParse("HEAD"))
+
+	for _, path := range paths {
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			repo.AddRm(path)
+			continue
+		}
+
+		file, err := os.ReadFile(path)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		hash, err := repo.storage.Create(file)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if trackedHash, found := tracked[path]; found && trackedHash == hash {
+			continue
+		}
+
+		repo.index.Add(repo.PathFromDot(path), hash)
+	}
+
+	err := repo.index.WriteBuffer()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (repo *Repository) Remove(paths ...string) {
+	for _, path := range paths {
+		repo.index.Remove(path)
+	}
+
+	err := repo.index.WriteBuffer()
+
+	if err != nil {
+		log.Fatalf("failed to save index: %v", err)
+	}
+}
