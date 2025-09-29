@@ -44,6 +44,8 @@ func main() {
 		commands.Help()
 	case "version", "-v", "--version", "v":
 		commands.Version()
+	case "diff":
+		commands.Diff(args[1:]...)
 	default:
 		fmt.Println("Invalid command")
 	}
