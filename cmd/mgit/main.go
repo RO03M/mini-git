@@ -40,6 +40,8 @@ func main() {
 		commands.Branch(args[1:]...)
 	case "switch":
 		commands.Switch(args[1:]...)
+	case "checkout":
+		commands.Checkout(args[1:]...)
 	case "help":
 		commands.Help()
 	case "version", "-v", "--version", "v":
